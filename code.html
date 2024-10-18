@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web de Procesos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px;
+            text-align: center;
+        }
+        
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 10fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .grid input {
+            width: 130px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .input-field {
+            margin-bottom: 20px;
+        }
+
+        .input-field label {
+            font-weight: bold;
+        }
+
+        .input-field input {
+            padding: 10px;
+            width: 150px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #2fa432;
+            font-size: 14px;
+            color: rgb(237, 238, 241);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        button:hover {
+            background-color: #110bd6;
+            transform:scale(1.1);
+        }
+
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+            position: static;
+            bottom: 0;
+        }
+
+        footer a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        #resultado {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .grid input {
+                width: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Aplicativo Web de Procesos: Cuadrar abonos</h1>
+    </header>
+
+    <main>
+        <h3>Ingresa los valores a combinar o cuadrar(sin separador de miles):</h3>
+        <br>
+        <div class="grid" id="grid">
+            <!-- Genera una cuadrícula de 10x1 -->
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+            <input type="number" />
+
+        </div>
+
+        <div class="input-field">
+            <label for="valorObjetivo">Valor objetivo:</label>
+            <input type="number" id="valorObjetivo" name="valorObjetivo">
+        </div>
+
+        <!-- Botones: Buscar Combinación y Limpiar -->
+        <div>
+            <button onclick="buscarCombinacion()">Buscar Combinación</button>
+            <button onclick="limpiarValores()">Limpiar Valores</button>
+        </div>
+
+        <div id="resultado"></div>
+    </main>
+
+    <footer>
+        <h3>Developed by: vicraul.vrcl@gmail.com</h3>
+        <p>Contacto: 
+            <a href="mailto:vicraul.vrcl@gmail.com">Email</a> | 
+            <a href="https://www.linkedin.com/in/victor-cercado/" target="_blank">Linkedin</a>
+        </p>
+    </footer>
+
+    <script>
+        function buscarCombinacion() {
+            // Obtener los valores de la cuadrícula
+            const inputs = document.querySelectorAll('.grid input');
+            const valores = Array.from(inputs).map(input => Number(input.value)).filter(value => !isNaN(value) && value !== 0);
+
+            // Obtener el valor objetivo
+            const valorObjetivo = Number(document.getElementById('valorObjetivo').value);
+
+            // Verifica que haya valores y un valor objetivo
+            if (valores.length === 0 || isNaN(valorObjetivo)) {
+                alert('Por favor ingresa valores en la cuadrícula y un valor objetivo.');
+                return;
+            }
+
+            // Función auxiliar para obtener todas las combinaciones posibles
+            function obtenerCombinaciones(array) {
+                const resultados = [];
+                const combinar = (subarreglo, indice) => {
+                    for (let i = indice; i < array.length; i++) {
+                        resultados.push([...subarreglo, array[i]]);
+                        combinar([...subarreglo, array[i]], i + 1);
+                    }
+                };
+                combinar([], 0);
+                return resultados;
+            }
+
+            // Obtener todas las combinaciones posibles de los valores
+            const combinaciones = obtenerCombinaciones(valores);
+
+            // Buscar las combinaciones cuya suma sea igual al valor objetivo o más cercana
+            let mejorCombinacion = null;
+            let mejorDiferencia = Infinity;
+
+            combinaciones.forEach(combinacion => {
+                const suma = combinacion.reduce((acc, val) => acc + val, 0);
+                const diferencia = Math.abs(valorObjetivo - suma);
+
+                if (diferencia < mejorDiferencia) {
+                    mejorCombinacion = combinacion;
+                    mejorDiferencia = diferencia;
+                }
+
+                // Si encontramos una suma exacta, terminamos la búsqueda
+                if (diferencia === 0) {
+                    return;
+                }
+            });
+
+            // Mostrar los resultados al usuario
+            const resultadoDiv = document.getElementById('resultado');
+            if (mejorDiferencia === 0) {
+                resultadoDiv.textContent = `¡Cuadre Exacto! Valores: ${mejorCombinacion.join(' | ')}`;
+            } else {
+                resultadoDiv.textContent = `No se encontró una combinación exacta. La combinación más cercana es: ${mejorCombinacion.join(' | ')}, con una suma de ${mejorCombinacion.reduce((acc, val) => acc + val, 0)}`;
+            }
+        }
+
+        // Función para limpiar los valores en las cuadrículas y el campo de Valor objetivo
+        function limpiarValores() {
+            const inputs = document.querySelectorAll('.grid input');
+            inputs.forEach(input => input.value = '');  // Limpiar las cuadrículas
+            document.getElementById('valorObjetivo').value = '';  // Limpiar el campo de Valor objetivo
+            document.getElementById('resultado').textContent = '';  // Limpiar el resultado
+        }
+    </script>
+
+</body>
+</html>
