@@ -1,1 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envio de Correo Facturación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input, select {
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto; /* Ajuste automático del ancho de columnas */
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Evita que el contenido se divida en varias líneas */
+        }
+
+        thead {
+            background-color: #f0f0f0;
+        }
+
+        .total-section {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #totalIntereses {
+            background-color: yellow;
+            padding: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #previewButton {
+            margin-top: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Formulario de Facturación</h1>
+        <form id="emailForm">
+            <div class="top-bar">
+                <div>
+                    <label for="destinatario">Factura dirigida a:</label>
+                    <select id="destinatario" required>
+                        <option value="" disabled selected>Seleccione</option>
+                        <option value="Obligado">Obligado</option>
+                        <option value="Cliente">Cliente</option>
+                    </select>
+
+                    <label for="contactEmail">Correo de Contacto:</label>
+                    <input type="email" id="contactEmail" placeholder="Ingrese su correo de contacto" required>
+                </div>
+                <button type="button" id="previewButton">Previsualizar y Enviar Correo</button>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Documento</th>
+                            <th>RUC Cliente</th>
+                            <th>Cliente</th>
+                            <th>Obligado</th>
+                            <th>Nro Doc</th>
+                            <th>Valor Nominal</th>
+                            <th>Vencimiento</th>
+                            <th>Intereses</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Se crean 20 filas vacías para editar -->
+                        <script>
+                            for(let i = 0; i < 20; i++) {
+                                document.write(`
+                                    <tr>
+                                        <td><input type="text"></td>
+                                        <td><input type="text"></td>
+                                        <td><input type="text"></td>
+                                        <td><input type="text"></td>
+                                        <td><input type="text"></td>
+                                        <td><input type="text"></td>
+                                        <td><input type="date"></td>
+                                        <td><input type="number" step="0.01" class="intereses" oninput="updateTotal()"></td>
+                                    </tr>
+                                `);
+                            }
+                        </script>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="total-section">
+                <label>Total Intereses: </label>
+                <span id="totalIntereses">S/ 0.00</span>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal para la previsualización del correo -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Previsualización del Correo</h2>
+            <div id="emailPreviewContent"></div>
+            <button id="sendEmailButton">Enviar Correo</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('previewButton').addEventListener('click', function () {
+            const destinatario = document.getElementById('destinatario').value;
+            const contactEmail = document.getElementById('contactEmail').value;
+            const tableData = getTableData();
+            const totalIntereses = document.getElementById('totalIntereses').textContent;
+
+            if (!destinatario || !contactEmail || tableData.length === 0) {
+                alert('Por favor, complete todos los campos requeridos.');
+                return;
+            }
+
+            // Extraer datos para el asunto del correo
+            const xObligado = tableData[0][3] || "Desconocido";
+            const xCliente = tableData[0][2] || "Desconocido";
+            const vencimiento = tableData[0][6];
+            const formattedDate = vencimiento ? new Date(vencimiento).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit'
+            }) : "00.00.00";
+
+            const subject = `FACTURAR SAB: ${xObligado} - ${xCliente} FV.${formattedDate}`;
+
+            // Construir el cuerpo del correo
+            const emailBody = `
+                Estimados, buen día<br><br>
+                Favor de facturar SIN IGV al ${destinatario} por ${totalIntereses}, por interés de FACTURAS VENCIDAS.<br><br>
+                <table border="1" style="border-collapse: collapse; width: 100%;">
+                    <tr>
+                        <th>Documento</th>
+                        <th>RUC Cliente</th>
+                        <th>Cliente</th>
+                        <th>Obligado</th>
+                        <th>Nro Doc</th>
+                        <th>Valor Nominal</th>
+                        <th>Vencimiento</th>
+                        <th>Intereses</th>
+                    </tr>
+                    ${tableData.map(row => `
+                        <tr>
+                            <td>${row[0]}</td>
+                            <td>${row[1]}</td>
+                            <td>${row[2]}</td>
+                            <td>${row[3]}</td>
+                            <td>${row[4]}</td>
+                            <td>${row[5]}</td>
+                            <td>${row[6]}</td>
+                            <td>${row[7]}</td>
+                        </tr>
+                    `).join('')}
+                </table><br>
+                Contacto: ${contactEmail}<br><br>
+                Saludos,<br>
+                [Firma del Usuario]
+            `;
+
+            // Mostrar previsualización en el modal
+            document.getElementById('emailPreviewContent').innerHTML = `
+                <p><strong>Asunto:</strong> ${subject}</p>
+                ${emailBody}
+            `;
+            openModal();
+
+            // Evento para enviar el correo después de la previsualización
+            document.getElementById('sendEmailButton').onclick = function () {
+                sendEmail(subject, emailBody);
+            };
+        });
+
+        function getTableData() {
+            const rows = document.querySelectorAll('#dataTable tbody tr');
+            let data = [];
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td input');
+                const rowData = Array.from(cells).map(cell => cell.value.trim());
+
+                // Solo incluir filas que tienen datos
+                if (rowData.some(cell => cell !== "")) {
+                    data.push(rowData);
+                }
+            });
+
+            return data;
+        }
+
+        function updateTotal() {
+            const interesesCells = document.querySelectorAll('.intereses');
+            let total = 0;
+
+            interesesCells.forEach(cell => {
+                const value = parseFloat(cell.value);
+                if (!isNaN(value)) {
+                    total += value;
+                }
+            });
+
+            document.getElementById('totalIntereses').textContent = `S/ ${total.toFixed(2)}`;
+        }
+
+        // Modal Handling
+        function openModal() {
+            document.getElementById('previewModal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('previewModal').style.display = "none";
+        }
+
+        document.querySelector('.close').onclick = closeModal;
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('previewModal')) {
+                closeModal();
+            }
+        };
+
+        // Enviar correo
+        function sendEmail(subject, body) {
+            window.location.href = `mailto:viccer.05@gmail.com?cc=rhalo.451@gmail.com,bako.asistentev@gmail.com&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            closeModal();
+        }
+
+        // Permitir pegado directo desde Excel (incluye fechas)
+        document.getElementById('dataTable').addEventListener('paste', function (event) {
+            event.preventDefault();
+            const clipboardData = event.clipboardData || window.clipboardData;
+            const pastedData = clipboardData.getData('Text').split('\n');
+
+            const rows = document.querySelectorAll('#dataTable tbody tr');
+            pastedData.forEach((rowData, index) => {
+                if (index < rows.length) {
+                    const cells = rowData.split('\t');
+                    const inputs = rows[index].querySelectorAll('td input');
+                    cells.forEach((cell, cellIndex) => {
+                        if (cellIndex < inputs.length) {
+                            if (inputs[cellIndex].type === 'date') {
+                                // Convertir fecha en formato adecuado si es necesario
+                                const dateValue = new Date(cell.trim());
+                                if (!isNaN(dateValue)) {
+                                    inputs[cellIndex].value = dateValue.toISOString().split('T')[0];
+                                }
+                            } else {
+                                inputs[cellIndex].value = cell.trim();
+                            }
+                        }
+                    });
+                }
+            });
+
+            updateTotal();
+        });
+    </script>        
+</body>
+</html>
 
