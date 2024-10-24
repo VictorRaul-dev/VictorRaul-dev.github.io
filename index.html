@@ -112,9 +112,9 @@
     </header>
 
     <main>
-        <h3>Ingresa los valores a combinar o cuadrar(sin separador de miles):</h3>
+        <h3>Ingresa los valores a combinar o cuadrar (sin separador de miles) o pega un rango de Excel:</h3>
         <br>
-        <div class="grid" id="grid">
+        <div class="grid" id="grid" onpaste="handlePaste(event)">
             <!-- Genera una cuadrícula de 10x1 -->
             <input type="number" />
             <input type="number" />
@@ -176,7 +176,6 @@
             <input type="number" />
             <input type="number" />
             <input type="number" />
-
         </div>
 
         <div class="input-field">
@@ -266,6 +265,26 @@
             inputs.forEach(input => input.value = '');  // Limpiar las cuadrículas
             document.getElementById('valorObjetivo').value = '';  // Limpiar el campo de Valor objetivo
             document.getElementById('resultado').textContent = '';  // Limpiar el resultado
+        }
+
+        // Función para manejar el pegado masivo de datos desde Excel
+        function handlePaste(event) {
+            event.preventDefault();
+            const clipboardData = event.clipboardData.getData('text');
+            const rows = clipboardData.split('\n');
+
+            const inputs = document.querySelectorAll('.grid input');
+            let inputIndex = 0;
+
+            rows.forEach(row => {
+                const values = row.split('\t'); // Dividir por tabulaciones (Excel)
+                values.forEach(value => {
+                    if (inputIndex < inputs.length) {
+                        inputs[inputIndex].value = value.trim();
+                        inputIndex++;
+                    }
+                });
+            });
         }
     </script>
 
