@@ -76,19 +76,37 @@ function buscarCombinacion() {
   // Iniciar la búsqueda
   buscarCombinacionesOptimizado([], 0, 0);
 
-  // Mostrar resultados
+  // Mostrar resultados en formato tabular
   const resultadoDiv = document.getElementById("resultado");
-  const sumaFinal = mejorCombinacion.reduce((acc, val) => acc + val, 0);
+  resultadoDiv.innerHTML = ""; // Limpiar el contenido previo
 
-  if (mejorDiferencia === 0) {
-    resultadoDiv.textContent = `¡Cuadre Exacto! Valores: ${mejorCombinacion.join(
-      " | "
-    )}`;
-  } else {
-    resultadoDiv.textContent = `No se encontró una combinación exacta. La combinación más cercana es: ${mejorCombinacion.join(
-      " | "
-    )}, con una suma de ${sumaFinal}`;
-  }
+  const sumaFinal = mejorCombinacion.reduce((acc, val) => acc + val, 0).toFixed(4);
+  const mensaje = mejorDiferencia === 0 
+    ? "¡Cuadre Exacto! Valores:" 
+    : `No se encontró una combinación exacta. La combinación más cercana con una suma de ${sumaFinal} es :`;
+
+  // Crear una tabla para mostrar los resultados en una columna
+  const table = document.createElement("table");
+  table.style.borderCollapse = "collapse";
+  table.style.marginTop = "10px";
+
+  // Agregar los valores en filas individuales
+  mejorCombinacion.forEach((valor) => {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.textContent = valor;
+    cell.style.border = "1px solid #ddd";
+    cell.style.padding = "8px";
+    cell.style.textAlign = "center";
+    row.appendChild(cell);
+    table.appendChild(row);
+  });
+
+  // Agregar mensaje y tabla al resultadoDiv
+  const mensajeDiv = document.createElement("div");
+  mensajeDiv.textContent = mensaje;
+  resultadoDiv.appendChild(mensajeDiv);
+  resultadoDiv.appendChild(table);
 }
 
 // Las funciones auxiliares se mantienen igual
